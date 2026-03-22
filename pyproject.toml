@@ -1,0 +1,15 @@
+[project]
+name = "the_royal_scientist"
+version = "1.0.0"
+description = "A text adventure game where you play as Dr. WD Gaster, the royal scientist of the underground."
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.10"
+
+authors = [
+	{ name = "Paya Maroufi", email = "h2o.Drop2010+github@gmail.com" },
+]
+
+dependencies = [
+	"adventurelib>=1.2.1,<2.0.0"
+]
