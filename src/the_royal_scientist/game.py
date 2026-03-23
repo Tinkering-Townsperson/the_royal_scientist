@@ -1,4 +1,4 @@
-import adventurelib as adv
+import richeradventurelib as adv
 
 from .computer import Computer
 from . import rooms, items  # noqa

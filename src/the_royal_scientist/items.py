@@ -1,4 +1,4 @@
-import adventurelib as adv  # noqa
+import richeradventurelib as adv  # noqa
 
 adv.Item.colour = "undistinguished"
 adv.Item.description = "a generic thing"

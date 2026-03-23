@@ -4,14 +4,14 @@ version = "1.0.0"
 description = "A text adventure game where you play as Dr. WD Gaster, the royal scientist of the underground."
 license = "MIT"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<4.0"
 
 authors = [
 	{ name = "Paya Maroufi", email = "h2o.Drop2010+github@gmail.com" },
 ]
 
 dependencies = [
-	"adventurelib>=1.2.1,<2.0.0"
+	"richeradventurelib @ https://github.com/Tinkering-Townsperson/richeradventurelib/releases/download/v1.2.1.post1/richeradventurelib-1.2.1.post1-py3-none-any.whl"
 ]
 
 [build-system]
