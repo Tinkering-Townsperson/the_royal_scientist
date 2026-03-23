@@ -231,4 +231,4 @@ locked in your bedroom, with no memory of how you got there.""")
 	adv.set_context(None)
 	adv.prompt = prompt
 	look()
-	adv.start()
+	adv.start(help=False)
