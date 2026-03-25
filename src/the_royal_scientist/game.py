@@ -8,12 +8,22 @@ import sys
 current_room = rooms.bedroom
 inventory = adv.Bag()
 
-computer_interface = Computer()
+computer_interface = Computer(console=adv.console)
 computer_interface.get_context = adv.get_context
 computer_interface.set_context = adv.set_context
 computer_interface.get_current_room = lambda: current_room
 
 day = 0
+
+
+def typewrite(text, delay=0.05, emphasis_delay=3.0, style="italic"):
+	for line in text.splitlines():
+		for char in line:
+			adv.console.print(char, end="", style=style)
+			sys.stdout.flush()
+			sleep(delay)
+		print()
+		sleep(emphasis_delay if line == "..." else delay * 6)
 
 
 # Item commands
@@ -23,16 +33,16 @@ day = 0
 @adv.when("inv")
 def show_inventory():
 	if len(inventory) == 0:
-		print("You are not carrying anything.")
+		adv.say("You are not carrying anything.")
 	else:
-		print("You are carrying:")
+		adv.say("You are carrying:")
 		for item in inventory:
-			print(f"- {item.name}")
+			adv.say(f"- {item.name}")
 
 
 @adv.when("look")
 def look():
-	print(current_room.short_desc)
+	adv.say(current_room.short_desc)
 
 
 @adv.when("look at ITEM")
@@ -43,11 +53,11 @@ def look_at(item: str):
 	if not obj:
 		obj = inventory.find(item)
 		if not obj:
-			print(f"I can't find {item} anywhere.")
+			adv.say(f"I can't find {item} anywhere.")
 		else:
-			print(f"You have {item}.")
+			adv.say(f"You have {item}.")
 	else:
-		print(f"You see {item}.")
+		adv.say(f"You see {item}.")
 
 
 @adv.when("take ITEM")
@@ -61,18 +71,18 @@ def take_item(item: str):
 	obj = current_room.items.find(item)
 
 	if not obj:
-		print(f"I don't see {item} here.")
+		adv.say(f"I don't see {item} here.")
 	elif not obj.moveable:
-		print(f"You try to pick up {item}.")
+		adv.say(f"You try to pick up {item}.")
 		sleep(0.5)
-		print("...")
+		adv.say("...")
 		sleep(2)
-		print(f"You can't pick up {item} --- it's not moveable.")
+		adv.say(f"You can't pick up {item} --- it's not moveable.")
 		sleep(0.5)
-		print("Now your back hurts. Ouch.")
+		adv.say("Now your back hurts. Ouch.")
 		sleep(0.5)
 	else:
-		print(f"You now have {obj.description}.")
+		adv.say(f"You now have {obj.description}.")
 		current_room.items.take(item)
 		inventory.add(obj)
 
@@ -85,11 +95,11 @@ def inspect_item(item: str):
 	if not obj:
 		obj = current_room.items.find(item)
 		if not obj:
-			print(f"I can't find {item} anywhere.")
+			adv.say(f"I can't find {item} anywhere.")
 			return
 
-	print(f"You inspect {item}.")
-	print(obj.description)
+	adv.say(f"You inspect {item}.")
+	adv.say(obj.description)
 
 
 @adv.when("read ITEM")
@@ -99,25 +109,19 @@ def read_item(item: str):
 	obj = inventory.find(item)
 
 	if not obj:
-		print(f"You don't have {item}.")
+		adv.say(f"You don't have {item}.")
 		return
 
 	if hasattr(obj, "text"):
-		print(f"You read {item}.\n\n")
+		adv.say(f"You read {item}.\n\n")
 
-		for line in obj.text.splitlines():
-			for char in line:
-				print(char, end="")
-				sys.stdout.flush()
-				sleep(0.05)
-			print()
-			sleep(3 if line == "..." else 0.5)
+		typewrite(obj.text)
 	else:
-		print(f"You try to read {item}.")
+		adv.say(f"You try to read {item}.")
 		sleep(0.5)
-		print("...")
+		adv.say("...")
 		sleep(2)
-		print("But there was nothing to read.")
+		adv.say("But there was nothing to read.")
 		sleep(0.5)
 
 
@@ -128,13 +132,13 @@ def log_on():
 	global current_room
 
 	if adv.get_context() == "logged_in":
-		print("You are already logged in.")
+		adv.say("You are already logged in.")
 		return
 
 	computer = current_room.items.find("computer")
 
 	if not computer:
-		print("There is no computer here.")
+		adv.say("There is no computer here, doofus :clown:! Aren't you a doctor or something?")
 		return
 
 	computer_interface.log_on()
@@ -152,11 +156,30 @@ def ls():
 	files = computer_interface.directory_tree.get(computer_interface.directory, {}).keys()
 
 	if files:
-		print(f"Showing directory tree of {computer_interface.directory}:")
+		adv.console.print(f"Showing directory tree of {computer_interface.directory}:")
 		for file in files:
-			print(file)
+			adv.console.print(file)
 	else:
-		print("There are no files here.")
+		adv.console.print("There are no files here.")
+
+
+@adv.when("echo", text="")
+@adv.when("echo TEXT")
+@computer_interface.check_logged_in
+def echo(text: str):
+	adv.console.print(text, end="")
+
+
+@adv.when("pwd")
+@computer_interface.check_logged_in
+def pwd():
+	adv.console.print(computer_interface.directory, end="")
+
+
+@adv.when("clear")
+@computer_interface.check_logged_in
+def clear():
+	adv.console.clear()
 
 
 @adv.when("cat FILE")
@@ -165,9 +188,15 @@ def cat(file: str):
 	content = computer_interface.directory_tree.get(computer_interface.directory, {}).get(file)
 
 	if content:
-		print(content)
+		typewrite(content, delay=0.03, emphasis_delay=0.03)
 	else:
-		print(f"File {file} not found.")
+		adv.console.print(f"File {file} not found.", end="")
+
+
+@adv.when("wingfetch")
+@computer_interface.check_logged_in
+def wingfetch():
+	computer_interface.wingfetch()
 
 
 # Movement
@@ -191,14 +220,14 @@ def go(direction: str):
 			direction in current_room.locked_exits
 			and current_room.locked_exits[direction]
 		):
-			print(f"You can't go {direction} --- the door is locked.")
+			adv.say(f"You can't go {direction} --- the door is locked.")
 		else:
 			current_room = next_room
-			print(f"You go {direction}.")
+			adv.say(f"You go {direction}.")
 			look()
 
 	else:
-		print("You walk into the wall. Ouch. Why would you do that?")
+		adv.say("You walk into the wall. Ouch. Why would you do that?")
 
 
 @adv.when("describe")
@@ -208,27 +237,52 @@ def describe_room():
 
 	# Are there any items here?
 	for item in current_room.items:
-		print(f"There is {item.description} here.")
+		adv.say(f"There is {item.description} here.")
+
+
+@adv.when("talk to CHARACTER")
+def talk_to(character: str):
+	global current_room
+
+	char = current_room.characters.find(character)
+
+	if not char:
+		adv.say(f"There is no {character} here to talk to.")
+	else:
+		adv.say(f"You talk to {char.name}.")
+		adv.say(char.description)
 
 
 def prompt():
 	ctx = adv.get_context()
 
 	if ctx == "logged_in":
-		return f"gaster@LabPC: {computer_interface.directory}$ "
+		return f"[bold green]gaster@LabPC[/]: [bold blue]{computer_interface.directory}[/]$ "
 	else:
 		return "> "
 
 
+def no_command_matches(command):
+	if computer_interface.logged_in:
+		adv.console.print(f"-wish: {command}: command not found", end="")
+	else:
+		adv.say(f"\"{command}\" does nothing here.")
+
+
 def start_game():
-	print("Welcome to The Royal Scientist!")
-	print("""You're Dr. WD Gaster, the royal scientist of the kingdom.
+	adv.console.clear()
+	adv.console.rule("[bold]Welcome to [italic]The Royal Scientist[/italic]![/bold]")
+	adv.say("""You're Dr. WD Gaster, the royal scientist of the kingdom.
 
 You have been working on a secret experiment in your laboratory,
 but something has gone wrong. You wake up one day to find yourself
-locked in your bedroom, with no memory of how you got there.""")
+locked in your bedroom, with no memory of how you got there.
+
+
+""")
 	# print("Type 'help' for a list of commands.")
 	adv.set_context(None)
 	adv.prompt = prompt
+	adv.no_command_matches = no_command_matches
 	look()
 	adv.start(help=False)

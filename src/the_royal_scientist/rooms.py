@@ -1,5 +1,5 @@
-import adventurelib as adv
-from . import items  # noqa
+import richeradventurelib as adv
+from . import items, characters  # noqa
 
 
 class Room(adv.Room):
@@ -13,6 +13,8 @@ class Room(adv.Room):
 			"west": False,
 		}
 		self.items = adv.Bag()
+		self.characters = adv.Bag()
+		self.interactive_objects = adv.Bag()
 		self.short_desc = short_description
 
 
@@ -46,7 +48,7 @@ elevator = Room(
 	"There is a button here to go up to the castle, and a button to go down to the laboratory.",
 )
 
-elevator.locked_exits["north"] = True
+# elevator.locked_exits["north"] = True
 
 castle_entrance = Room(
 	"Castle Entrance",
@@ -60,17 +62,17 @@ throne_room = Room(
 	"There are two large thrones here for the king and queen.",
 )
 
+throne_room.characters.add(
+	characters.asgore
+)
+
 
 # Connect the rooms
 
 bedroom.south = laboratory
-laboratory.north = bedroom
-
 laboratory.west = lab_entrance
-lab_entrance.east = laboratory
-
+lab_entrance.north = elevator
 elevator.north = castle_entrance
-castle_entrance.south = elevator
-
 castle_entrance.north = throne_room
-throne_room.south = castle_entrance
+
+# check /map.excalidraw for a visual representation of the map

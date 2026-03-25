@@ -27,5 +27,5 @@ WHAT DO YOU TWO THINK?
 """
 
 computer = adv.Item("computer", "desk computer")
-computer.description = "A computer on the desk. There is a sticky note on the screen that says \"\""
+computer.description = "a computer on the desk. There is a sticky note on the screen that says \"\""
 computer.moveable = False
